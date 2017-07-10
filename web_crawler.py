@@ -6,6 +6,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
 import time
+import traceback
 
 # 웹크롤링 클래스
 class WebCrawler:
@@ -24,28 +25,31 @@ class WebCrawler:
             self.browser = webdriver.Chrome(desired_capabilities=d_cap)
         else:
             self.browser = webdriver.PhantomJS(desired_capabilities=d_cap)
-        self.browser.implicitly_wait(3)
+        self.browser.implicitly_wait(1)
 
     def login(self, login_url, id, pw):
         self.browser.get(login_url)
 
         self.browser.find_element_by_name('username').send_keys(id)
         self.browser.find_element_by_name('password').send_keys(pw)
-        time.sleep(2)
+        time.sleep(1)
 
         self.browser.find_element_by_css_selector('.btn-submit').click()
 
         try:
-            WebDriverWait(self.browser, 30).until(EC.element_to_be_clickable((By.CLASS_NAME, 'btn-submit')))
+            WebDriverWait(self.browser, 3).until(EC.element_to_be_clickable((By.CLASS_NAME, 'btn-submit')))
             print('Click is ready!')
+            return True
         except Exception:
             print('Click took too much time!')
+            traceback.print_exc()
+            return False
 
     def get_browser_html(self, page_url):
         self.browser.get(page_url)
 
         try:
-            WebDriverWait(self.browser, 30).until(EC.presence_of_element_located((By.CLASS_NAME, 'nano-page-square-list')))
+            WebDriverWait(self.browser, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'nano-page-square-list')))
             print("Page is ready!")
         except Exception:
             print("Loading took too much time!")
@@ -53,6 +57,10 @@ class WebCrawler:
         page_lxml = BeautifulSoup(self.browser.page_source, 'lxml')
 
         return page_lxml
+
+    def get_browser_json(self, page_url):
+        self.browser.get(page_url)
+        return self.browser.page_source
 
 if __name__ == '__main__':
     browser = WebCrawler()
